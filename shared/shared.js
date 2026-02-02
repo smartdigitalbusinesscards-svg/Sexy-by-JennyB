@@ -1,287 +1,262 @@
 // shared/shared.js
-(() => {
-  const $ = (id) => document.getElementById(id);
+(function () {
+  "use strict";
 
-  // ---------- helpers ----------
-  const isPlaceholder = (v) =>
-    !v || String(v).trim() === "" || /^REPLACE_/i.test(String(v).trim());
+  const $ = (sel) => document.querySelector(sel);
 
-  const normUrl = (u) => {
-    if (isPlaceholder(u)) return "";
-    const s = String(u).trim();
-    if (/^https?:\/\//i.test(s)) return s;
-    return "https://" + s.replace(/^\/+/, "");
-  };
-
-  const setText = (id, value) => {
-    const el = $(id);
-    if (el) el.textContent = isPlaceholder(value) ? "" : String(value);
-  };
-
-  const disableEl = (el) => {
-    if (!el) return;
-    el.setAttribute("aria-disabled", "true");
-    el.style.opacity = "0.45";
-    el.style.pointerEvents = "none";
-    // keep href from jumping to top
-    if (el.tagName === "A") el.setAttribute("href", "javascript:void(0)");
-  };
-
-  const enableHref = (id, href) => {
-    const el = $(id);
-    if (!el) return;
-
-    if (!href) {
-      disableEl(el);
-      return;
-    }
-
-    el.setAttribute("aria-disabled", "false");
-    el.style.opacity = "";
-    el.style.pointerEvents = "";
-    el.setAttribute("href", href);
-
-    // If it's a web link, open in new tab safely
-    if (/^https?:\/\//i.test(href)) {
-      el.setAttribute("target", "_blank");
-      el.setAttribute("rel", "noopener");
-    } else {
-      el.removeAttribute("target");
-      el.removeAttribute("rel");
-    }
-  };
-
-  const buildSmsLink = (digitsOnly, body) => {
-    const num = String(digitsOnly || "").replace(/[^\d]/g, "");
-    if (!num) return "";
-    const msg = isPlaceholder(body) ? "" : String(body || "");
-    if (!msg) return `sms:${num}`;
-
-    const ua = navigator.userAgent || "";
-    const isiOS = /iPhone|iPad|iPod/i.test(ua);
-    const sep = isiOS ? "&" : "?";
-    return `sms:${num}${sep}body=${encodeURIComponent(msg)}`;
-  };
-
-  // ---------- tier features ----------
-  const FEATURES = {
-    starter: { booking: true, qr: false, qrDownload: false, eliteCTA: false },
-    pro:     { booking: true, qr: true,  qrDownload: true,  eliteCTA: false },
-    elite:   { booking: true, qr: true,  qrDownload: true,  eliteCTA: true  },
-  };
-
-  const getTier = () => {
-    const t = (window.BIZ?.tier || "starter").toString().toLowerCase();
-    return t === "pro" || t === "elite" ? t : "starter";
-  };
-
-  // ---------- UI apply ----------
-  const applyTierUI = () => {
-    const tier = getTier();
-    const f = FEATURES[tier];
-
-    const chipMain = $("chipMain");
-    const tierBadge = $("tierBadge");
-
-    if (chipMain) chipMain.textContent =
-      tier === "elite" ? "Elite eCard" :
-      tier === "pro"   ? "Pro eCard" :
-      "eCard";
-
-    if (tierBadge) tierBadge.textContent = tier.toUpperCase();
-
-    // QR row visibility
-    const hint = $("qrHint");
-    const row  = $("utilityRow");
-    if (hint) hint.style.display = f.qr ? "block" : "none";
-    if (row)  row.style.display  = f.qr ? "flex"  : "none";
-
-    // Elite CTA visibility (tier-based)
-    const eliteBtn = $("eliteCtaBtn");
-    if (eliteBtn) eliteBtn.style.display = f.eliteCTA ? "" : "none";
-  };
-
-  const applyCardData = () => {
-    const B = window.BIZ || {};
-    const tier = getTier();
-    const f = FEATURES[tier];
-
-    // text
-    setText("fullName", B.fullName);
-    setText("companyName", B.company);
-    setText("companyTag", B.tagline);
-    setText("title", B.title);
-    setText("phonePretty", B.phonePretty);
-
-    // phone links
-    const digits  = String(B.phoneTel || "").replace(/[^\d]/g, "");
-    const telHref = digits ? `tel:${digits}` : "";
-    const smsHref = buildSmsLink(digits, B.textPrefill);
-
-    enableHref("callBtn", telHref);
-    enableHref("textBtn", smsHref);
-
-    // email links
-    const email = isPlaceholder(B.email) ? "" : String(B.email).trim();
-    enableHref("emailBtn", email ? `mailto:${email}` : "");
-
-    const emailLink = $("emailLink");
-    if (emailLink) {
-      if (email) {
-        emailLink.textContent = email;
-        emailLink.setAttribute("href", `mailto:${email}`);
-        emailLink.style.pointerEvents = "";
-        emailLink.style.opacity = "";
-      } else {
-        emailLink.textContent = "";
-        disableEl(emailLink);
-      }
-    }
-
-    // website links
-    const website = normUrl(B.website);
-    enableHref("siteBtn", website);
-
-    const siteLink = $("siteLink");
-    if (siteLink) {
-      if (website) {
-        siteLink.textContent = website.replace(/^https?:\/\//i, "");
-        siteLink.setAttribute("href", website);
-        siteLink.setAttribute("target", "_blank");
-        siteLink.setAttribute("rel", "noopener");
-        siteLink.style.pointerEvents = "";
-        siteLink.style.opacity = "";
-      } else {
-        siteLink.textContent = "";
-        disableEl(siteLink);
-      }
-    }
-
-    // booking
-    const booking = normUrl(B.bookingLink);
-    // if booking feature is off (not in your matrix, but safe), hide/disable
-    if (!f.booking) {
-      const bookBtn = $("bookBtn");
-      if (bookBtn) bookBtn.style.display = "none";
-    } else {
-      enableHref("bookBtn", booking);
-    }
-
-    // ---------- Elite CTA (ONLY ONE PLACE) ----------
-    const eliteBtn = $("eliteCtaBtn");
-    const eliteLabelEl = $("eliteCtaLabel");
-
-    // Label
-    const label = isPlaceholder(B.eliteCtaLabel) ? "" : String(B.eliteCtaLabel).trim();
-    if (eliteLabelEl) eliteLabelEl.textContent = label || "Elite Bonus";
-
-    // URL + enable/disable (only matters on elite tier; pro hides it anyway)
-    const eliteUrl = normUrl(B.eliteCtaUrl);
-
-    if (eliteBtn) {
-      if (!f.eliteCTA) {
-        eliteBtn.style.display = "none";
-      } else {
-        if (!eliteUrl) {
-          // If elite but missing URL, hide it (so it never looks “dead”)
-          eliteBtn.style.display = "none";
-          disableEl(eliteBtn);
-        } else {
-          eliteBtn.style.display = "";
-          enableHref("eliteCtaBtn", eliteUrl);
-        }
-      }
-    }
-
-    // Phone tile click fallback (optional)
-    const phoneTile = $("phoneTile");
-    if (phoneTile) {
-      if (telHref) {
-        phoneTile.style.pointerEvents = "";
-        phoneTile.style.opacity = "";
-        phoneTile.onclick = () => { window.location.href = telHref; };
-      } else {
-        disableEl(phoneTile);
-      }
-    }
-  };
-
-  // ---------- sheet ----------
-  const overlay = () => $("overlay");
-  const sheet = () => $("sheet");
-  const sheetBody = () => $("sheetBody");
-
-  const openSheet = () => {
-    overlay()?.classList.add("open");
-    sheet()?.classList.add("open");
-  };
-  const closeSheet = () => {
-    overlay()?.classList.remove("open");
-    sheet()?.classList.remove("open");
-    if (sheetBody()) sheetBody().innerHTML = "";
-  };
-
-  const wireSheet = () => {
-    $("closeSheetBtn")?.addEventListener("click", closeSheet);
-    overlay()?.addEventListener("click", closeSheet);
-  };
-
-  // ---------- QR (qrserver image) ----------
-  const qrImageUrl = () => {
-    const url = window.location.href.split("#")[0];
-    const data = encodeURIComponent(url);
-    return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${data}`;
-  };
-
-  const showQR = () => {
-    const body = sheetBody();
-    if (!body) return;
-
-    const imgUrl = qrImageUrl();
-
-    body.innerHTML = `
-      <div class="qrFrame elite">
-        <div class="qrCaption">Scan to open this card</div>
-        <img id="qrImg" src="${imgUrl}" alt="QR code" style="width:260px;height:260px;border-radius:14px;background:#fff;padding:10px;">
-        <div class="qrUrl">${window.location.href}</div>
-      </div>
-
-      <a class="sheetBtn primary" id="qrDownloadLink" href="${imgUrl}" download="qr-code.png">
-        Download QR
-      </a>
-    `;
-
-    openSheet();
-  };
-
-  const wireQR = () => {
-    $("qrBtn")?.addEventListener("click", showQR);
-
-    $("qrDownloadBtn")?.addEventListener("click", () => {
-      showQR();
-      setTimeout(() => {
-        const a = $("qrDownloadLink");
-        if (a) a.click();
-      }, 50);
-    });
-  };
-
-  // ---------- init ----------
-  const init = () => {
-    applyCardData();
-    applyTierUI();
-    wireSheet();
-    wireQR();
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  function getParam(name) {
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
   }
 
-  window.addEventListener("hashchange", () => {
-    applyTierUI();
-    applyCardData();
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (val ?? "").toString();
+  }
+
+  function setLink(id, href, label) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!href) {
+      // hide parent tile/btn if it's a link
+      const tile = el.closest(".tile");
+      if (tile) tile.style.display = "none";
+      return;
+    }
+    el.href = href;
+    if (label) el.textContent = label;
+  }
+
+  function show(el, on) {
+    if (!el) return;
+    el.style.display = on ? "" : "none";
+  }
+
+  function normalizeWebsite(url) {
+    if (!url) return "";
+    const u = url.trim();
+    if (!u) return "";
+    if (/^https?:\/\//i.test(u)) return u;
+    return "https://" + u;
+  }
+
+  // --- Sheet / modal helpers ---
+  const overlay = $("#overlay");
+  const sheet = $("#sheet");
+  const sheetBody = $("#sheetBody");
+  const closeSheetBtn = $("#closeSheetBtn");
+  const sheetTitle = $("#sheetTitle");
+  const sheetSub = $("#sheetSub");
+
+  function openSheet(title, sub, bodyNode) {
+    if (sheetTitle) sheetTitle.textContent = title || "";
+    if (sheetSub) sheetSub.textContent = sub || "";
+    if (sheetBody) {
+      sheetBody.innerHTML = "";
+      if (bodyNode) sheetBody.appendChild(bodyNode);
+    }
+    overlay?.classList.add("open");
+    sheet?.classList.add("open");
+  }
+
+  function closeSheet() {
+    overlay?.classList.remove("open");
+    sheet?.classList.remove("open");
+    if (sheetBody) sheetBody.innerHTML = "";
+  }
+
+  overlay?.addEventListener("click", closeSheet);
+  closeSheetBtn?.addEventListener("click", closeSheet);
+
+  // --- Build ---
+  const BIZ = window.BIZ || {};
+
+  // Tier precedence: URL > config.js value > starter
+  const tierFromUrl = (getParam("tier") || "").toLowerCase();
+  const tier = (tierFromUrl || (BIZ.tier || "starter")).toLowerCase();
+
+  document.body.setAttribute("data-tier", tier);
+
+  // Badge + chips
+  const tierBadge = $("#tierBadge");
+  if (tierBadge) tierBadge.textContent = tier.toUpperCase();
+  setText("chipSub", tier === "starter" ? "Scan-ready" : tier.toUpperCase());
+
+  // Fill identity
+  setText("fullName", BIZ.fullName || "Your Name");
+  setText("companyName", BIZ.company || "Company");
+  setText("companyTag", BIZ.tagline || "");
+  setText("title", BIZ.title || "");
+
+  // Phone
+  setText("phonePretty", BIZ.phonePretty || "");
+  const telDigits = (BIZ.phoneTel || "").replace(/[^\d]/g, "");
+  const telHref = telDigits ? `tel:${telDigits}` : "";
+
+  // Email
+  const email = (BIZ.email || "").trim();
+  const mailHref = email ? `mailto:${email}` : "";
+  const emailLink = $("#emailLink");
+  if (emailLink) {
+    if (!email) {
+      emailLink.closest(".tile")?.setAttribute("style", "display:none");
+    } else {
+      emailLink.href = mailHref;
+      emailLink.textContent = email;
+    }
+  }
+
+  // Website
+  const website = normalizeWebsite(BIZ.website || "");
+  const siteLabel = website ? website.replace(/^https?:\/\//i, "").replace(/\/+$/, "") : "";
+  const siteLink = $("#siteLink");
+  if (siteLink) {
+    if (!website) {
+      siteLink.closest(".tile")?.setAttribute("style", "display:none");
+    } else {
+      siteLink.href = website;
+      siteLink.textContent = siteLabel;
+    }
+  }
+
+  // Buttons
+  const callBtn = $("#callBtn");
+  const textBtn = $("#textBtn");
+  const emailBtn = $("#emailBtn");
+  const siteBtn = $("#siteBtn");
+  const bookBtn = $("#bookBtn");
+
+  if (callBtn) callBtn.href = telHref || "#";
+  if (textBtn) {
+    const prefill = (BIZ.textPrefill || "").trim();
+    // iOS prefers &body= ; Android SMS uses ?body=
+    const body = encodeURIComponent(prefill);
+    textBtn.href = telDigits ? `sms:${telDigits}?&body=${body}` : "#";
+  }
+  if (emailBtn) emailBtn.href = mailHref || "#";
+  if (siteBtn) siteBtn.href = website || "#";
+
+  // Booking link: hide if empty
+  const booking = normalizeWebsite(BIZ.bookingLink || "");
+  if (!booking) {
+    show(bookBtn, false);
+  } else {
+    bookBtn.href = booking;
+  }
+
+  // Phone tile opens sheet with Call/Text
+  const phoneTile = $("#phoneTile");
+  phoneTile?.addEventListener("click", () => {
+    const box = document.createElement("div");
+
+    const makeBtn = (label, href, primary = false) => {
+      const a = document.createElement("a");
+      a.className = "sheetBtn" + (primary ? " primary" : "");
+      a.href = href || "#";
+      a.target = "_self";
+      a.rel = "noopener";
+      a.textContent = label;
+      if (!href || href === "#") {
+        a.style.opacity = "0.45";
+        a.style.pointerEvents = "none";
+      }
+      return a;
+    };
+
+    box.appendChild(makeBtn("Call", telHref, true));
+    box.appendChild(makeBtn("Text", textBtn?.href || "#", false));
+
+    openSheet("Reach Out", "Choose an option", box);
+  });
+
+  // Pro+ utilities
+  const isProPlus = tier === "pro" || tier === "elite";
+  show($("#qrHint"), isProPlus);
+  show($("#utilityRow"), isProPlus);
+
+  // QR generation (uses current page URL without query noise)
+  const qrBtn = $("#qrBtn");
+  const qrDownloadBtn = $("#qrDownloadBtn");
+  let lastQrUrl = "";
+
+  function makeQrUrl() {
+    const u = new URL(window.location.href);
+    // keep tier in QR so it scans with correct tier
+    u.searchParams.set("tier", tier);
+    const data = encodeURIComponent(u.toString());
+    // external QR service (simple + reliable)
+    return `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${data}`;
+  }
+
+  qrBtn?.addEventListener("click", () => {
+    lastQrUrl = makeQrUrl();
+
+    const box = document.createElement("div");
+    box.className = "qrBox";
+
+    const img = document.createElement("img");
+    img.alt = "QR Code";
+    img.src = lastQrUrl;
+
+    const hint = document.createElement("div");
+    hint.className = "qrHintText";
+    hint.textContent = "Have someone scan this QR to open your eCard instantly.";
+
+    box.appendChild(img);
+    box.appendChild(hint);
+
+    openSheet("Your QR Code", "Scan to open this eCard", box);
+  });
+
+  qrDownloadBtn?.addEventListener("click", () => {
+    lastQrUrl = lastQrUrl || makeQrUrl();
+    const a = document.createElement("a");
+    a.href = lastQrUrl;
+    a.download = `${(BIZ.company || "ecard").replace(/\s+/g, "_")}_QR.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+
+  // Save Contact (vCard)
+  const saveBtn = $("#saveContactBtn");
+  saveBtn?.addEventListener("click", () => {
+    const fn = (BIZ.fullName || "").trim();
+    const org = (BIZ.company || "").trim();
+    const title = (BIZ.title || "").trim();
+
+    const v = [
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      fn ? `FN:${fn}` : "",
+      org ? `ORG:${org}` : "",
+      title ? `TITLE:${title}` : "",
+      telDigits ? `TEL;TYPE=CELL:${telDigits}` : "",
+      email ? `EMAIL;TYPE=INTERNET:${email}` : "",
+      website ? `URL:${website}` : "",
+      "END:VCARD"
+    ].filter(Boolean).join("\n");
+
+    const blob = new Blob([v], { type: "text/vcard;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(fn || "contact").replace(/\s+/g, "_")}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  });
+
+  // Defensive: disable broken links
+  [callBtn, textBtn, emailBtn, siteBtn].forEach((btn) => {
+    if (!btn) return;
+    if (!btn.getAttribute("href") || btn.getAttribute("href") === "#") {
+      btn.style.opacity = "0.45";
+      btn.style.pointerEvents = "none";
+    }
   });
 })();
