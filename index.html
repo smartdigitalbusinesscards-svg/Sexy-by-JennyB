@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-  <base href="./">
+<base href="./">
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#04151f" />
-<title>Smart Digital eCard</title>
-<meta name="description" content="Smart Digital eCard with tier features." />
+<title>Sexy By JennyB — Smart Digital eCard</title>
+<meta name="description" content="Smart Digital eCard (Pro) for Sexy By JennyB." />
 
 <style>
   :root{
@@ -111,13 +111,12 @@
     margin: 0 18px;
   }
 
-  /* =========================================================
+  /* ============================================================
      ✅ Brand Watermark (CLEAN + SCOPED)
-     - One watermark system only
-     - Visible for ALL tiers (starter/pro/elite)
-     - Sits behind topZone content only
-     ========================================================= */
-
+       - One watermark system only
+       - Visible for ALL tiers (starter/pro/elite)
+       - Sits behind topZone content only
+     ============================================================ */
   .topZone{
     position:relative;
     overflow:hidden;
@@ -131,7 +130,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    opacity:.16; /* tweak if needed */
+    opacity:.16;
   }
 
   .topZone .wm img{
@@ -139,7 +138,7 @@
     max-width: none;
     height: auto;
     object-fit: contain;
-    transform: rotate(0deg) translateY(10px);
+    transform: rotate(-10deg) translateY(10px);
     filter: brightness(1.12) contrast(1.08) grayscale(100%);
   }
 
@@ -237,28 +236,6 @@
     border: 1px solid rgba(255,255,255,.18);
     background: linear-gradient(90deg, rgba(79,227,255,.22), rgba(99,255,178,.16));
     color: rgba(236,246,255,.92);
-  }
-  .chip.elite{
-    border: 1px solid rgba(255,255,255,.22);
-    background: linear-gradient(90deg, rgba(99,255,178,.24), rgba(79,227,255,.22));
-    color: rgba(236,246,255,.95);
-    position:relative;
-    overflow:hidden;
-  }
-  .chip.elite::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
-    transform: translateX(-65%);
-    animation: eliteSweep 2.4s ease-in-out infinite;
-    opacity:.9;
-  }
-  @keyframes eliteSweep{
-    0%{ transform: translateX(-65%); opacity:0; }
-    25%{ opacity:.7; }
-    60%{ opacity:.35; }
-    100%{ transform: translateX(135%); opacity:0; }
   }
 
   /* Hero */
@@ -464,27 +441,6 @@
     background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.14));
   }
 
-  /* Elite CTA */
-  .btn.elite{
-    grid-column: 1 / -1;
-    border:none;
-    color:#04151f;
-    background: linear-gradient(90deg, rgba(255,255,255,.20), rgba(79,227,255,.92), rgba(99,255,178,.85));
-    box-shadow: 0 22px 60px rgba(255,255,255,.08);
-    position:relative;
-    overflow:hidden;
-  }
-  .btn.elite::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.30), transparent);
-    transform: translateX(-70%);
-    animation: eliteSweep 2.2s ease-in-out infinite;
-    opacity:.75;
-    pointer-events:none;
-  }
-
   /* Utility Row (Pro+) */
   .utilHint{
     font-size:12px;
@@ -630,6 +586,29 @@
   }
   .sheetBtn svg{ width:18px; height:18px; fill: currentColor; }
 
+  /* QR panel inside sheet */
+  .qrBox{
+    display:grid;
+    justify-items:center;
+    gap:10px;
+    padding: 8px 0 2px;
+  }
+  .qrBox img{
+    width: 260px;
+    max-width: 82vw;
+    height: auto;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.18);
+    padding: 10px;
+  }
+  .qrHintText{
+    font-size:12px;
+    color: rgba(236,246,255,.70);
+    text-align:center;
+    max-width: 560px;
+  }
+
   @media (max-width: 520px){
     .brandBar{ flex-direction:column; align-items:flex-start; }
     .chipRow{ justify-content:flex-start; }
@@ -637,10 +616,10 @@
   @media (max-width: 380px){
     .hero{ flex-direction:column; align-items:flex-start; }
     .actions{ grid-template-columns: 1fr; }
-    .btn.main, .btn.save, .btn.elite{ grid-column:auto; }
+    .btn.main, .btn.save{ grid-column:auto; }
   }
   @media (prefers-reduced-motion: reduce){
-    .waterGlow, .pulseLine::after, .card::before, .chip.elite::after, .btn.elite::after{ animation:none !important; }
+    .waterGlow, .pulseLine::after, .card::before{ animation:none !important; }
     .sheet, .overlay{ transition:none !important; }
   }
 </style>
@@ -673,7 +652,7 @@
 
           <div class="chipRow">
             <div class="chip glow" id="chipMain">eCard</div>
-            <div class="chip" id="chipSub">Scan-ready</div>
+            <div class="chip" id="chipSub">Pro</div>
           </div>
         </section>
 
@@ -728,14 +707,10 @@
       </section>
 
       <section class="actions" id="actions">
+        <!-- Booking button hides automatically if bookingLink is blank -->
         <a class="btn main" id="bookBtn" href="#" target="_blank" rel="noopener" aria-label="Book appointment">
           <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
           Book an Appointment
-        </a>
-
-        <a class="btn elite" id="eliteCtaBtn" href="#" target="_blank" rel="noopener" aria-label="Elite call-to-action">
-          <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.7 4.1L18 21l-6-4-6 4 1.7-7.9L2 9h7l3-7z"/></svg>
-          <span id="eliteCtaLabel">Elite Bonus</span>
         </a>
 
         <a class="btn primary" id="callBtn" href="#" aria-label="Call">
@@ -782,7 +757,7 @@
 
       <footer>
         <div>Smart Digital eCard</div>
-        <div id="tierBadge">STARTER</div>
+        <div id="tierBadge">PRO</div>
       </footer>
     </main>
   </div>
@@ -803,66 +778,7 @@
     </div>
   </div>
 
-  <!-- ============================================================
-     CUSTOMER CONFIG (edit per customer)
-     ============================================================ -->
-<script>
-  // IMPORTANT:
-  // Put ALL customer values here so shared/shared.js can wire buttons correctly.
-  // Tier can still be overridden by URL (?tier=starter|pro|elite) via shared/config.js
-
-  window.BIZ = {
-    tier: "starter", // default tier (URL can override)
-
-    fullName: "REPLACE_FULL_NAME",
-    company: "REPLACE_COMPANY",
-    tagline: "REPLACE_TAGLINE",
-    title: "REPLACE_TITLE",
-
-    phonePretty: "REPLACE_PHONE_PRETTY",
-    phoneTel: "2095551234", // digits only, like 2095551234
-
-    email: "you@domain.com",
-    website: "https://example.com", // include https://
-
-    bookingLink: "https://calendly.com/yourlink", // include https:// (or leave "" if not used)
-
-    textPrefill: "REPLACE_TEXT_PREFILL",
-
-    eliteCtaLabel: "Free Water Quality Guide",
-    eliteCtaUrl: "https://selectsourcewater.com/elite-bonus"
-  };
-</script>
-
-<script>
-  (function () {
-    const box = document.createElement("div");
-    box.id = "debugErrors";
-    box.style.cssText = `
-      position:fixed; left:10px; right:10px; bottom:10px; z-index:99999;
-      background:rgba(140,0,0,.92); color:#fff; padding:10px 12px; border-radius:12px;
-      font:12px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      box-shadow:0 20px 60px rgba(0,0,0,.6);
-      display:none; white-space:pre-wrap; word-break:break-word;
-    `;
-    document.addEventListener("DOMContentLoaded", () => document.body.appendChild(box));
-
-    function show(msg){
-      box.style.display = "block";
-      box.textContent = "JS ERROR:\n" + msg;
-    }
-
-    window.addEventListener("error", (e) => {
-      const msg = `${e.message}\n${e.filename || ""}:${e.lineno || ""}:${e.colno || ""}`;
-      show(msg);
-    });
-
-    window.addEventListener("unhandledrejection", (e) => {
-      show(String(e.reason || e));
-    });
-  })();
-</script>
-
+  <!-- Customer config is injected via shared/config.js -->
   <script src="shared/config.js"></script>
   <script src="shared/shared.js"></script>
 </body>
