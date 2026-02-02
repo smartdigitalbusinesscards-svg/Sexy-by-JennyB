@@ -1,29 +1,30 @@
 // shared/config.js
-(() => {
+// Customer-specific values (generated from form submission)
+
+(function () {
   window.BIZ = window.BIZ || {};
 
-  // 1) default tier if nothing else provided
-  if (!window.BIZ.tier) window.BIZ.tier = "starter";
+  // Defaults (can still be overridden by URL param ?tier=starter|pro|elite)
+  window.BIZ.tier = "pro";
 
-  // 2) allow URL tier via:
-  //    ?tier=elite   (preferred)
-  //    #tier=elite   (also supported)
-  //    #?tier=elite  (supported too)
-  const pickTierFromUrl = () => {
-    const fromSearch = new URLSearchParams(window.location.search).get("tier");
+  window.BIZ.fullName = "Jenny B";
+  window.BIZ.company  = "Sexy By JennyB";
+  window.BIZ.tagline  = "Entertainer";
+  window.BIZ.title    = "Entertainer";
 
-    const hash = (window.location.hash || "").replace(/^#/, "");
-    const hashClean = hash.startsWith("?") ? hash.slice(1) : hash;
-    const fromHash = new URLSearchParams(hashClean).get("tier") || (hash.includes("tier=") ? null : hash);
+  window.BIZ.phonePretty = "(209) 604-6209";
+  window.BIZ.phoneTel    = "2096046209";
 
-    const tier = (fromSearch || fromHash || "").toString().trim().toLowerCase();
-    if (tier === "starter" || tier === "pro" || tier === "elite") {
-      window.BIZ.tier = tier;
-    }
-  };
+  window.BIZ.email   = "Sexybyjennyb@gmail.com";
+  window.BIZ.website = "https://besexywithjennyb.com";
 
-  pickTierFromUrl();
+  // Not provided in form, leaving empty will auto-hide booking button
+  window.BIZ.bookingLink = "";
 
-  // If user changes only the hash later, still update tier
-  window.addEventListener("hashchange", pickTierFromUrl);
+  // Nice default prefill
+  window.BIZ.textPrefill = "Hey Jenny! I just checked out Sexy By JennyB — I’d love to connect 🙂";
+
+  // Elite-only (ignored unless tier=elite)
+  window.BIZ.eliteCtaLabel = "VIP Bonus";
+  window.BIZ.eliteCtaUrl   = "https://besexywithjennyb.com";
 })();
